@@ -1,6 +1,6 @@
 import { cp, mkdtemp, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import {
   createAgentSession,
   DefaultResourceLoader,
@@ -9,6 +9,7 @@ import {
   parseArgs,
   SessionManager,
   SettingsManager,
+  type AgentSessionEvent,
 } from "@earendil-works/pi-coding-agent";
 import { reportDiagnostics } from "./diagnostics";
 import { resolveRequestedModel } from "./model";
@@ -89,35 +90,55 @@ function parseDoCommand(args: string[]): DoCommandOptions {
   return options;
 }
 
-async function prepareWorkingDirectory(dir: string, sandbox: boolean): Promise<string> {
+export interface PreparedWorkingDirectory {
+  cwd: string;
+  sourceDir: string;
+  sandboxRoot?: string;
+}
+
+export interface AgentPromptResult {
+  cwd: string;
+  sessionId: string;
+}
+
+export interface AgentPromptOptions {
+  prompt: string;
+  dir: string;
+  sandbox?: boolean;
+  piArgs?: string[];
+  report?: boolean;
+  onEvent?: (event: AgentSessionEvent) => void;
+}
+
+export async function prepareWorkingDirectory(dir: string, sandbox: boolean, report = false): Promise<PreparedWorkingDirectory> {
   const sourceDir = await realpath(resolve(dir));
 
-  if (!sandbox) return sourceDir;
+  if (!sandbox) return { cwd: sourceDir, sourceDir };
 
   const sandboxRoot = await mkdtemp(join(tmpdir(), "tsci-agent-"));
   const sandboxDir = join(sandboxRoot, "workspace");
   await cp(sourceDir, sandboxDir, {
     recursive: true,
-    filter: (path) => !path.includes("/.git/"),
+    filter: (path) => !relative(sourceDir, path).split(/[\\/]/).includes(".git"),
   });
 
-  console.error(`[tsci-agent] sandbox copy: ${sourceDir} -> ${sandboxDir}`);
-  console.error("[tsci-agent] sandbox is a temporary filesystem copy, not a security boundary.");
-  return sandboxDir;
+  if (report) {
+    console.error(`[tsci-agent] sandbox copy: ${sourceDir} -> ${sandboxDir}`);
+    console.error("[tsci-agent] sandbox is a temporary filesystem copy, not a security boundary.");
+  }
+  return { cwd: sandboxDir, sourceDir, sandboxRoot };
 }
 
-export async function runDoCommand(args: string[]): Promise<void> {
-  const options = parseDoCommand(args);
-  const prompt = options.prompt;
-  if (!prompt) throw new Error("`tsci-agent do` requires --prompt <text>.");
-
-  const cwd = await prepareWorkingDirectory(options.dir, options.sandbox);
+export async function runAgentPrompt(options: AgentPromptOptions): Promise<AgentPromptResult> {
+  const { cwd } = await prepareWorkingDirectory(options.dir, options.sandbox ?? false, options.report ?? false);
   const skillPath = await findTscircuitSkill();
-  const parsed = parseArgs(options.piArgs);
-  reportDiagnostics(parsed.diagnostics);
+  const parsed = parseArgs(options.piArgs ?? []);
+  if (options.report) reportDiagnostics(parsed.diagnostics);
 
   const fatalDiagnostics = parsed.diagnostics.filter((diagnostic) => diagnostic.type === "error");
-  if (fatalDiagnostics.length > 0) process.exit(1);
+  if (fatalDiagnostics.length > 0) {
+    throw new Error(fatalDiagnostics.map((diagnostic) => diagnostic.message).join("\n"));
+  }
 
   const agentDir = getAgentDir();
   const authStorage = createAuthStorage(parsed);
@@ -144,20 +165,38 @@ export async function runDoCommand(args: string[]): Promise<void> {
     ...createSessionOptionOverrides(parsed),
   });
 
-  if (modelFallbackMessage) console.error(`[warning] ${modelFallbackMessage}`);
-  reportDiagnostics(loader.getSkills().diagnostics);
-  for (const error of extensionsResult.errors) {
-    console.error(`[warning] extension ${error.path}: ${error.error}`);
+  if (options.report) {
+    if (modelFallbackMessage) console.error(`[warning] ${modelFallbackMessage}`);
+    reportDiagnostics(loader.getSkills().diagnostics);
+    for (const error of extensionsResult.errors) {
+      console.error(`[warning] extension ${error.path}: ${error.error}`);
+    }
   }
 
   await session.bindExtensions({});
-  const unsubscribe = session.subscribe(renderEvent);
+  const subscriptions = [options.onEvent ? session.subscribe(options.onEvent) : undefined];
 
   try {
-    console.error(`[session] ${session.sessionId} cwd=${cwd}`);
-    await session.prompt(prompt, { expandPromptTemplates: true });
+    if (options.report) console.error(`[session] ${session.sessionId} cwd=${cwd}`);
+    await session.prompt(options.prompt, { expandPromptTemplates: true });
+    return { cwd, sessionId: session.sessionId };
   } finally {
-    unsubscribe();
+    for (const unsubscribe of subscriptions) unsubscribe?.();
     session.dispose();
   }
+}
+
+export async function runDoCommand(args: string[]): Promise<void> {
+  const options = parseDoCommand(args);
+  const prompt = options.prompt;
+  if (!prompt) throw new Error("`tsci-agent do` requires --prompt <text>.");
+
+  await runAgentPrompt({
+    prompt,
+    dir: options.dir,
+    sandbox: options.sandbox,
+    piArgs: options.piArgs,
+    report: true,
+    onEvent: renderEvent,
+  });
 }

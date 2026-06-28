@@ -28,7 +28,7 @@ function pathInCwd(cwd: string, path: string): string {
   return resolve(cwd, path);
 }
 
-async function writeModelsJson(agentDir: string, serverUrl: string) {
+export async function writeTestModelsJson(agentDir: string, serverUrl: string) {
   await mkdir(agentDir, { recursive: true });
   await writeFile(
     join(agentDir, "models.json"),
@@ -69,7 +69,7 @@ export async function getTestCli(): Promise<TestCli> {
   const cwd = await mkdtemp(join(tmpdir(), "tsci-agent-test-cwd-"));
   const agentDir = await mkdtemp(join(tmpdir(), "tsci-agent-test-agent-"));
   const fakeLlmApi: FakeLlmApiServer = await startFakeLlmApiServer();
-  await writeModelsJson(agentDir, fakeLlmApi.url);
+  await writeTestModelsJson(agentDir, fakeLlmApi.url);
 
   let lastStdout = "";
   let lastStderr = "";

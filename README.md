@@ -38,6 +38,27 @@ tsci-agent do --prompt "Try this refactor" --dir ./somedir --sandbox
 
 `--sandbox` protects the original directory from ordinary writes by using a copy, but it is not a security boundary or container.
 
+## Library usage
+
+You can also run the agent from another Bun/TypeScript program and inspect the sandbox after the prompt completes:
+
+```ts
+import { runPromptInSandbox } from "tsci-agent/lib";
+
+await using result = await runPromptInSandbox("Review this tscircuit project", {
+  dir: "./somedir",
+  // Optional Pi SDK CLI-style args:
+  // piArgs: ["--model", "openai/gpt-4.1"],
+});
+
+console.log(result.output);
+console.log(await result.files.ls());
+console.log(await result.files.read("index.circuit.tsx"));
+console.log(result.sandboxDir);
+```
+
+`runPromptInSandbox` copies `dir` to a temporary workspace, runs the prompt there, and returns `output`, `sandboxDir`, `originalDir`, `sessionId`, and `files` helpers scoped to the sandbox. Use `await using` as shown, or call `await result.dispose()`, to remove the temporary sandbox when you are done reading it. Like CLI `--sandbox`, this is a temporary filesystem copy, not a security boundary.
+
 ## Build
 
 ```bash

@@ -1,7 +1,7 @@
 {
   "name": "tsci-agent",
   "version": "0.1.0",
-  "description": "A Bun/TypeScript CLI that runs the Pi coding agent with the tscircuit skill loaded.",
+  "description": "An interactive coding agent and command line utility for coding tscircuit TSX circuits",
   "type": "module",
   "bin": {
     "tsci-agent": "dist/cli.js"

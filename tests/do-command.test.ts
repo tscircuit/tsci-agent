@@ -7,6 +7,7 @@ test("runs the do command against the deterministic fake LLM", async () => {
   const result = await cli.do("Say hello from the tscircuit agent.");
 
   expect(result.exitCode).toBe(0);
-  await expect(cli.getLastOutput()).resolves.toContain("FAKE_LLM: Hello from the tscircuit agent.");
+  await expect(cli.getLastOutput()).resolves.toContain("Hello from the tscircuit agent.");
+  await expect(cli.getLastOutput()).resolves.not.toContain("FAKE_LLM:");
   await expect(cli.getLastStderr()).resolves.toContain("[agent] done");
-});
+}, 60_000);

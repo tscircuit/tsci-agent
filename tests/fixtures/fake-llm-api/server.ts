@@ -129,7 +129,7 @@ async function findBestResponse(input: string): Promise<CachedResponse> {
     if (!best || score > best.score) best = { response, score };
   }
 
-  if (best && best.score > 0) return best.response;
+  if (best && best.score >= 0.5) return best.response;
   return generateWithOpenAi(input);
 }
 

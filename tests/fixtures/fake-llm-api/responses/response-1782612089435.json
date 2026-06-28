@@ -1,0 +1,11 @@
+{
+  "inputSummary": "Review thi...b166d834...a tool and base your response only on those files.",
+  "match": "Review this tscircuit project. First inspect the current directory with a tool and base your response only on those files.",
+  "phase": "initial",
+  "toolCall": {
+    "name": "bash",
+    "args": {
+      "command": "ls -la"
+    }
+  }
+}

@@ -15,6 +15,7 @@ export interface TestCli extends AsyncDisposable {
   do(prompt: string, options?: { sandbox?: boolean; args?: string[] }): Promise<{ exitCode: number; stdout: string; stderr: string }>;
   getLastOutput(): Promise<string>;
   getLastStderr(): Promise<string>;
+  getLastSandboxDir(): Promise<string | undefined>;
   dispose(): Promise<void>;
   files: {
     ls(path: string): Promise<string[]>;
@@ -72,6 +73,8 @@ export async function getTestCli(): Promise<TestCli> {
 
   let lastStdout = "";
   let lastStderr = "";
+  let lastSandboxDir: string | undefined;
+  const sandboxRoots = new Set<string>();
 
   async function doCommand(prompt: string, options: { sandbox?: boolean; args?: string[] } = {}) {
     const args = [
@@ -110,6 +113,11 @@ export async function getTestCli(): Promise<TestCli> {
 
     lastStdout = stdout;
     lastStderr = stderr;
+
+    const sandboxMatch = stderr.match(/^\[tsci-agent\] sandbox copy: .* -> (.*)$/m);
+    lastSandboxDir = sandboxMatch?.[1]?.trim();
+    if (lastSandboxDir) sandboxRoots.add(dirname(lastSandboxDir));
+
     return { exitCode, stdout, stderr };
   }
 
@@ -118,6 +126,9 @@ export async function getTestCli(): Promise<TestCli> {
     if (disposed) return;
     disposed = true;
     await fakeLlmApi.stop();
+    for (const sandboxRoot of sandboxRoots) {
+      await rm(sandboxRoot, { recursive: true, force: true });
+    }
     await rm(cwd, { recursive: true, force: true });
     await rm(agentDir, { recursive: true, force: true });
   }
@@ -131,6 +142,9 @@ export async function getTestCli(): Promise<TestCli> {
     },
     async getLastStderr() {
       return lastStderr;
+    },
+    async getLastSandboxDir() {
+      return lastSandboxDir;
     },
     dispose,
     async [Symbol.asyncDispose]() {

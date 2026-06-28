@@ -1,8 +1,16 @@
 #!/usr/bin/env bun
 
-import { ensurePiPackageDir } from "./pi-assets";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { findPackageVersion } from "./paths";
 import { usage } from "./usage";
+
+function ensurePiPackageDir(): void {
+  if (process.env.PI_PACKAGE_DIR) return;
+
+  const packageJsonUrl = import.meta.resolve("@earendil-works/pi-coding-agent/package.json");
+  process.env.PI_PACKAGE_DIR = dirname(fileURLToPath(packageJsonUrl));
+}
 
 ensurePiPackageDir();
 

@@ -12,8 +12,10 @@
   ],
   "scripts": {
     "dev": "bun run src/cli.ts",
-    "build": "bun build src/cli.ts --target bun --outfile dist/cli.js && bun run scripts/copy-skill.ts && bun run scripts/make-executable.ts",
+    "bundle": "bun build src/cli.ts --target bun --outfile dist/cli.js && bun run scripts/copy-skill.ts && bun run scripts/make-executable.ts",
+    "build": "bun run bundle",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "start": "bun run dist/cli.js",
     "prepack": "bun run build"
   },

@@ -1,0 +1,5 @@
+{
+  "inputSummary": "Say hello ...0d0f0723...rcuit agent.",
+  "match": "Say hello from the tscircuit agent.",
+  "output": "FAKE_LLM: Hello from the tscircuit agent."
+}

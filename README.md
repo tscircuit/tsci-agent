@@ -45,7 +45,15 @@ bun run build
 ./dist/cli.js --help
 ```
 
-The build bundles the Pi SDK code into `dist/cli.js` and copies `github:tscircuit/skill` into `dist/skill`, so the packaged CLI does not need a global `pi` executable or the skill installed as a runtime dependency.
+The build bundles the Pi SDK code into a JavaScript entrypoint at `dist/cli.js` (not a native binary) and copies `github:tscircuit/skill` into `dist/skill`, so the packaged CLI does not need a global `pi` executable or the skill installed as a runtime dependency.
+
+## Test
+
+```bash
+bun test
+```
+
+Tests use `tests/fixtures/getTestCli.ts`, which starts a local fake OpenAI-compatible LLM server and runs the CLI in a temporary workspace with a temporary Pi config directory.
 
 ## How it works
 

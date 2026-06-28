@@ -1,9 +1,15 @@
 #!/usr/bin/env bun
 
-import { runDoCommand } from "./do-command";
-import { runInteractive } from "./interactive";
+import { ensurePiPackageDir } from "./pi-assets";
 import { findPackageVersion } from "./paths";
 import { usage } from "./usage";
+
+ensurePiPackageDir();
+
+async function runSmokeTestAssets(): Promise<void> {
+  const { initTheme } = await import("@earendil-works/pi-coding-agent");
+  initTheme("dark", false);
+}
 
 async function main() {
   const args = Bun.argv.slice(2);
@@ -18,11 +24,19 @@ async function main() {
     process.exit(0);
   }
 
+  if (args[0] === "--smoke-test-assets") {
+    await runSmokeTestAssets();
+    console.log("ok");
+    process.exit(0);
+  }
+
   if (args[0] === "do") {
+    const { runDoCommand } = await import("./do-command");
     await runDoCommand(args.slice(1));
     return;
   }
 
+  const { runInteractive } = await import("./interactive");
   await runInteractive(args);
 }
 

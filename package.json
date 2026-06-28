@@ -16,12 +16,14 @@
     "build": "bun run bundle",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
+    "smoke": "./dist/cli.js --smoke-test-assets",
     "start": "bun run dist/cli.js",
     "prepack": "bun run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.2"
+  },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "^0.80.2",
     "@types/bun": "latest",
     "skill": "github:tscircuit/skill",
     "typescript": "latest"

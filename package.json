@@ -1,0 +1,35 @@
+{
+  "name": "tsci-agent",
+  "version": "0.1.0",
+  "description": "A Bun/TypeScript CLI that runs the Pi coding agent with the tscircuit skill loaded.",
+  "type": "module",
+  "bin": {
+    "tsci-agent": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "bun run src/cli.ts",
+    "build": "bun build src/cli.ts --target bun --outfile dist/cli.js && bun run scripts/copy-skill.ts && bun run scripts/make-executable.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "bun run dist/cli.js",
+    "prepack": "bun run build"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.2",
+    "@types/bun": "latest",
+    "skill": "github:tscircuit/skill",
+    "typescript": "latest"
+  },
+  "keywords": [
+    "pi",
+    "tscircuit",
+    "coding-agent",
+    "bun"
+  ],
+  "license": "MIT",
+  "packageManager": "bun@1.3.14"
+}

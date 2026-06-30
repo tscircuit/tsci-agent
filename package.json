@@ -1,6 +1,6 @@
 {
   "name": "tsci-agent",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An interactive coding agent and command line utility for coding tscircuit TSX circuits",
   "type": "module",
   "bin": {

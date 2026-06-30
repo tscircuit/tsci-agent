@@ -1,10 +1,20 @@
 import { AuthStorage, type Args } from "@earendil-works/pi-coding-agent";
 import { resolveCliPaths } from "./paths";
+import { TSCIRCUIT_AI_GATEWAY_PROVIDER } from "./tscircuit-ai-gateway";
+
+function resolveRuntimeApiKeyProvider(parsed: Args): string {
+  if (parsed.provider) return parsed.provider;
+
+  const slashIndex = parsed.model?.indexOf("/") ?? -1;
+  if (slashIndex > 0) return parsed.model!.slice(0, slashIndex);
+
+  return TSCIRCUIT_AI_GATEWAY_PROVIDER;
+}
 
 export function createAuthStorage(parsed: Args): AuthStorage {
   const authStorage = AuthStorage.create();
   if (parsed.apiKey) {
-    authStorage.setRuntimeApiKey(parsed.provider ?? "anthropic", parsed.apiKey);
+    authStorage.setRuntimeApiKey(resolveRuntimeApiKeyProvider(parsed), parsed.apiKey);
   }
   return authStorage;
 }

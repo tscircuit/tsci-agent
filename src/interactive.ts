@@ -14,6 +14,7 @@ import { reportDiagnostics } from "./diagnostics";
 import { resolveRequestedModel } from "./model";
 import { findTscircuitSkill } from "./paths";
 import { createAuthStorage, createResourceLoaderOptions, createSessionOptionOverrides } from "./pi-sdk-options";
+import { registerTscircuitAiGatewayProvider, resolveDefaultModelArg } from "./tscircuit-ai-gateway";
 
 export async function runInteractive(args: string[]): Promise<void> {
   const parsed = parseArgs(args);
@@ -26,7 +27,9 @@ export async function runInteractive(args: string[]): Promise<void> {
   const skillPath = await findTscircuitSkill();
   const authStorage = createAuthStorage(parsed);
   const modelRegistry = ModelRegistry.create(authStorage);
-  const model = resolveRequestedModel(modelRegistry, parsed.provider, parsed.model);
+  const sessionManager = SessionManager.create(cwd, parsed.sessionDir);
+  registerTscircuitAiGatewayProvider(modelRegistry, sessionManager.getSessionId());
+  const model = resolveRequestedModel(modelRegistry, parsed.provider, resolveDefaultModelArg(parsed.model));
   const settingsManager = SettingsManager.create(cwd, agentDir);
 
   const createRuntime: CreateAgentSessionRuntimeFactory = async ({ cwd, sessionManager, sessionStartEvent }) => {
@@ -55,7 +58,7 @@ export async function runInteractive(args: string[]): Promise<void> {
   const runtime = await createAgentSessionRuntime(createRuntime, {
     cwd,
     agentDir,
-    sessionManager: SessionManager.create(cwd, parsed.sessionDir),
+    sessionManager,
   });
 
   const mode = new InteractiveMode(runtime, {

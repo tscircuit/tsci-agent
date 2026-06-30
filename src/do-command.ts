@@ -16,6 +16,7 @@ import { resolveRequestedModel } from "./model";
 import { findTscircuitSkill } from "./paths";
 import { createAuthStorage, createResourceLoaderOptions, createSessionOptionOverrides } from "./pi-sdk-options";
 import { renderEvent } from "./render-events";
+import { registerTscircuitAiGatewayProvider, resolveDefaultModelArg } from "./tscircuit-ai-gateway";
 import { usage } from "./usage";
 
 interface DoCommandOptions {
@@ -143,7 +144,9 @@ export async function runAgentPrompt(options: AgentPromptOptions): Promise<Agent
   const agentDir = getAgentDir();
   const authStorage = createAuthStorage(parsed);
   const modelRegistry = ModelRegistry.create(authStorage);
-  const model = resolveRequestedModel(modelRegistry, parsed.provider, parsed.model);
+  const sessionManager = SessionManager.inMemory(cwd);
+  registerTscircuitAiGatewayProvider(modelRegistry, sessionManager.getSessionId());
+  const model = resolveRequestedModel(modelRegistry, parsed.provider, resolveDefaultModelArg(parsed.model));
   const settingsManager = SettingsManager.create(cwd, agentDir);
   const loader = new DefaultResourceLoader({
     cwd,
@@ -160,7 +163,7 @@ export async function runAgentPrompt(options: AgentPromptOptions): Promise<Agent
     modelRegistry,
     settingsManager,
     resourceLoader: loader,
-    sessionManager: SessionManager.inMemory(cwd),
+    sessionManager,
     model,
     ...createSessionOptionOverrides(parsed),
   });

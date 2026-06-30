@@ -12,10 +12,15 @@ const cliEntry = join(repoRoot, "src", "cli.ts");
 export interface TestCli extends AsyncDisposable {
   cwd: string;
   agentDir: string;
-  do(prompt: string, options?: { sandbox?: boolean; args?: string[] }): Promise<{ exitCode: number; stdout: string; stderr: string }>;
+  fakeLlmApiUrl: string;
+  do(
+    prompt: string,
+    options?: { sandbox?: boolean; args?: string[]; model?: string | false },
+  ): Promise<{ exitCode: number; stdout: string; stderr: string }>;
   getLastOutput(): Promise<string>;
   getLastStderr(): Promise<string>;
   getLastSandboxDir(): Promise<string | undefined>;
+  getLastLlmRequestHeaders(): Promise<Record<string, string> | undefined>;
   dispose(): Promise<void>;
   files: {
     ls(path: string): Promise<string[]>;
@@ -76,7 +81,8 @@ export async function getTestCli(): Promise<TestCli> {
   let lastSandboxDir: string | undefined;
   const sandboxRoots = new Set<string>();
 
-  async function doCommand(prompt: string, options: { sandbox?: boolean; args?: string[] } = {}) {
+  async function doCommand(prompt: string, options: { sandbox?: boolean; args?: string[]; model?: string | false } = {}) {
+    const modelArgs = options.model === false ? [] : ["--model", options.model ?? "fake/fake-model"];
     const args = [
       cliEntry,
       "do",
@@ -84,8 +90,7 @@ export async function getTestCli(): Promise<TestCli> {
       prompt,
       "--dir",
       cwd,
-      "--model",
-      "fake/fake-model",
+      ...modelArgs,
       ...(options.sandbox ? ["--sandbox"] : []),
       ...(options.args ?? []),
     ];
@@ -136,6 +141,7 @@ export async function getTestCli(): Promise<TestCli> {
   return {
     cwd,
     agentDir,
+    fakeLlmApiUrl: fakeLlmApi.url,
     do: doCommand,
     async getLastOutput() {
       return lastStdout;
@@ -145,6 +151,9 @@ export async function getTestCli(): Promise<TestCli> {
     },
     async getLastSandboxDir() {
       return lastSandboxDir;
+    },
+    async getLastLlmRequestHeaders() {
+      return fakeLlmApi.getLastRequestHeaders();
     },
     dispose,
     async [Symbol.asyncDispose]() {

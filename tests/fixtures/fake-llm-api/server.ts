@@ -9,6 +9,7 @@ const responsesDir = join(__dirname, "responses");
 
 export interface FakeLlmApiServer {
   url: string;
+  getLastRequestHeaders(): Record<string, string> | undefined;
   stop(): Promise<void>;
 }
 
@@ -312,6 +313,8 @@ function openAiToolCallResponse(name: string, args: unknown): Response {
 }
 
 export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
+  let lastRequestHeaders: Record<string, string> | undefined;
+
   const server = Bun.serve({
     port: 0,
     async fetch(request) {
@@ -323,6 +326,7 @@ export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
 
       if (request.method === "POST" && url.pathname === "/v1/chat/completions") {
         try {
+          lastRequestHeaders = Object.fromEntries(request.headers.entries());
           const body = await request.json();
           const input = getLastUserText(body);
           const toolText = getLastToolText(body);
@@ -356,6 +360,9 @@ export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
 
   return {
     url: `http://${server.hostname}:${server.port}`,
+    getLastRequestHeaders() {
+      return lastRequestHeaders;
+    },
     async stop() {
       await server.stop(true);
     },

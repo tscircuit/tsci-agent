@@ -13,6 +13,11 @@ function ensurePiPackageDir(): void {
   process.env.PI_PACKAGE_DIR = dirname(fileURLToPath(packageJsonUrl));
 }
 
+function disablePiVersionCheck(): void {
+  process.env.PI_SKIP_VERSION_CHECK ||= "1";
+}
+
+disablePiVersionCheck();
 ensurePiPackageDir();
 
 async function runSmokeTestAssets(): Promise<void> {

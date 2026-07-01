@@ -12,7 +12,7 @@ const cliEntry = join(repoRoot, "src", "cli.ts");
 export interface TestCli extends AsyncDisposable {
   cwd: string;
   agentDir: string;
-  tscircuitConfigDir: string;
+  homeDir: string;
   fakeLlmApiUrl: string;
   do(
     prompt: string,
@@ -77,7 +77,7 @@ export async function writeTestModelsJson(agentDir: string, serverUrl: string) {
 export async function getTestCli(): Promise<TestCli> {
   const cwd = await mkdtemp(join(tmpdir(), "tsci-agent-test-cwd-"));
   const agentDir = await mkdtemp(join(tmpdir(), "tsci-agent-test-agent-"));
-  const tscircuitConfigDir = await mkdtemp(join(tmpdir(), "tsci-agent-test-tsci-config-"));
+  const homeDir = await mkdtemp(join(tmpdir(), "tsci-agent-test-home-"));
   const fakeLlmApi: FakeLlmApiServer = await startFakeLlmApiServer();
   await writeTestModelsJson(agentDir, fakeLlmApi.url);
 
@@ -112,7 +112,11 @@ export async function getTestCli(): Promise<TestCli> {
         PI_OFFLINE: "1",
         PI_SKIP_VERSION_CHECK: "1",
         PI_TELEMETRY: "0",
-        TSCIRCUIT_CONFIG_DIR: tscircuitConfigDir,
+        HOME: homeDir,
+        USERPROFILE: homeDir,
+        APPDATA: join(homeDir, "AppData", "Roaming"),
+        XDG_CONFIG_HOME: "",
+        TSCIRCUIT_CONFIG_DIR: "",
         TSCIRCUIT_JWT: "",
       },
     });
@@ -143,13 +147,13 @@ export async function getTestCli(): Promise<TestCli> {
     }
     await rm(cwd, { recursive: true, force: true });
     await rm(agentDir, { recursive: true, force: true });
-    await rm(tscircuitConfigDir, { recursive: true, force: true });
+    await rm(homeDir, { recursive: true, force: true });
   }
 
   return {
     cwd,
     agentDir,
-    tscircuitConfigDir,
+    homeDir,
     fakeLlmApiUrl: fakeLlmApi.url,
     do: doCommand,
     async getLastOutput() {
@@ -183,8 +187,15 @@ export async function getTestCli(): Promise<TestCli> {
     },
     auth: {
       async writeToken(token: string) {
+        const configPath =
+          process.platform === "darwin"
+            ? join(homeDir, "Library", "Preferences", "tscircuit-nodejs", "config.json")
+            : process.platform === "win32"
+              ? join(homeDir, "AppData", "Roaming", "tscircuit-nodejs", "Config", "config.json")
+              : join(homeDir, ".config", "tscircuit-nodejs", "config.json");
+        await mkdir(dirname(configPath), { recursive: true });
         await writeFile(
-          join(tscircuitConfigDir, "config.json"),
+          configPath,
           `${JSON.stringify({ sessionToken: token }, null, 2)}\n`,
         );
       },

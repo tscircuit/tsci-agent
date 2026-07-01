@@ -3,7 +3,6 @@ import {
   createAgentSessionRuntime,
   createAgentSessionServices,
   getAgentDir,
-  InteractiveMode,
   ModelRegistry,
   parseArgs,
   SessionManager,
@@ -14,6 +13,7 @@ import { reportDiagnostics } from "./diagnostics";
 import { resolveRequestedModel } from "./model";
 import { findTscircuitSkill } from "./paths";
 import { createAuthStorage, createResourceLoaderOptions, createSessionOptionOverrides } from "./pi-sdk-options";
+import { TscircuitInteractiveMode } from "./tscircuit-interactive-mode";
 import { registerTscircuitAiGatewayProvider, resolveDefaultModelArg } from "./tscircuit-ai-gateway";
 
 export async function runInteractive(args: string[]): Promise<void> {
@@ -61,7 +61,7 @@ export async function runInteractive(args: string[]): Promise<void> {
     sessionManager,
   });
 
-  const mode = new InteractiveMode(runtime, {
+  const mode = new TscircuitInteractiveMode(runtime, {
     migratedProviders: [],
     modelFallbackMessage: runtime.modelFallbackMessage,
     initialMessage: parsed.messages.join(" ") || undefined,

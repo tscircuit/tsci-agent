@@ -12,6 +12,7 @@ const cliEntry = join(repoRoot, "src", "cli.ts");
 export interface TestCli extends AsyncDisposable {
   cwd: string;
   agentDir: string;
+  tscircuitConfigDir: string;
   fakeLlmApiUrl: string;
   do(
     prompt: string,
@@ -26,6 +27,9 @@ export interface TestCli extends AsyncDisposable {
     ls(path: string): Promise<string[]>;
     read(path: string): Promise<string>;
     write(path: string, content: string): Promise<void>;
+  };
+  auth: {
+    writeToken(token: string): Promise<void>;
   };
 }
 
@@ -73,6 +77,7 @@ export async function writeTestModelsJson(agentDir: string, serverUrl: string) {
 export async function getTestCli(): Promise<TestCli> {
   const cwd = await mkdtemp(join(tmpdir(), "tsci-agent-test-cwd-"));
   const agentDir = await mkdtemp(join(tmpdir(), "tsci-agent-test-agent-"));
+  const tscircuitConfigDir = await mkdtemp(join(tmpdir(), "tsci-agent-test-tsci-config-"));
   const fakeLlmApi: FakeLlmApiServer = await startFakeLlmApiServer();
   await writeTestModelsJson(agentDir, fakeLlmApi.url);
 
@@ -107,6 +112,8 @@ export async function getTestCli(): Promise<TestCli> {
         PI_OFFLINE: "1",
         PI_SKIP_VERSION_CHECK: "1",
         PI_TELEMETRY: "0",
+        TSCIRCUIT_CONFIG_DIR: tscircuitConfigDir,
+        TSCIRCUIT_JWT: "",
       },
     });
 
@@ -136,11 +143,13 @@ export async function getTestCli(): Promise<TestCli> {
     }
     await rm(cwd, { recursive: true, force: true });
     await rm(agentDir, { recursive: true, force: true });
+    await rm(tscircuitConfigDir, { recursive: true, force: true });
   }
 
   return {
     cwd,
     agentDir,
+    tscircuitConfigDir,
     fakeLlmApiUrl: fakeLlmApi.url,
     do: doCommand,
     async getLastOutput() {
@@ -170,6 +179,14 @@ export async function getTestCli(): Promise<TestCli> {
         const absolutePath = pathInCwd(cwd, path);
         await mkdir(dirname(absolutePath), { recursive: true });
         await writeFile(absolutePath, content);
+      },
+    },
+    auth: {
+      async writeToken(token: string) {
+        await writeFile(
+          join(tscircuitConfigDir, "config.json"),
+          `${JSON.stringify({ sessionToken: token }, null, 2)}\n`,
+        );
       },
     },
   };

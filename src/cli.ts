@@ -3,6 +3,7 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { findPackageVersion } from "./paths";
+import { TSCI_LOGIN_MESSAGE } from "./tsci-auth";
 import { usage } from "./usage";
 
 function ensurePiPackageDir(): void {
@@ -12,6 +13,11 @@ function ensurePiPackageDir(): void {
   process.env.PI_PACKAGE_DIR = dirname(fileURLToPath(packageJsonUrl));
 }
 
+function disablePiVersionCheck(): void {
+  process.env.PI_SKIP_VERSION_CHECK ||= "1";
+}
+
+disablePiVersionCheck();
 ensurePiPackageDir();
 
 async function runSmokeTestAssets(): Promise<void> {
@@ -49,6 +55,10 @@ async function main() {
 }
 
 main().catch((error) => {
+  if (error instanceof Error && error.message === TSCI_LOGIN_MESSAGE) {
+    console.error(TSCI_LOGIN_MESSAGE);
+    process.exit(1);
+  }
   console.error(`tsci-agent: ${error instanceof Error ? error.message : String(error)}`);
   process.exit(1);
 });

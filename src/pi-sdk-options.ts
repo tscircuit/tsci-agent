@@ -1,8 +1,9 @@
 import { AuthStorage, type Args } from "@earendil-works/pi-coding-agent";
 import { resolveCliPaths } from "./paths";
+import { getTscircuitSessionToken, TSCI_LOGIN_MESSAGE } from "./tsci-auth";
 import { TSCIRCUIT_AI_GATEWAY_PROVIDER } from "./tscircuit-ai-gateway";
 
-function resolveRuntimeApiKeyProvider(parsed: Args): string {
+export function resolveRuntimeApiKeyProvider(parsed: Args): string {
   if (parsed.provider) return parsed.provider;
 
   const slashIndex = parsed.model?.indexOf("/") ?? -1;
@@ -16,6 +17,14 @@ export function createAuthStorage(parsed: Args): AuthStorage {
   if (parsed.apiKey) {
     authStorage.setRuntimeApiKey(resolveRuntimeApiKeyProvider(parsed), parsed.apiKey);
   }
+
+  const token = getTscircuitSessionToken();
+  if (token) {
+    authStorage.setRuntimeApiKey(TSCIRCUIT_AI_GATEWAY_PROVIDER, token);
+  } else if (resolveRuntimeApiKeyProvider(parsed) === TSCIRCUIT_AI_GATEWAY_PROVIDER && !parsed.apiKey) {
+    throw new Error(TSCI_LOGIN_MESSAGE);
+  }
+
   return authStorage;
 }
 

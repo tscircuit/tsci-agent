@@ -5,6 +5,7 @@ import { getTestCli } from "./fixtures/getTestCli";
 
 test("defaults the do command to the tscircuit AI gateway model", async () => {
   await using cli = await getTestCli();
+  await cli.auth.writeToken("test-tsci-session-token");
 
   await writeFile(
     join(cli.agentDir, "models.json"),
@@ -52,6 +53,7 @@ test("defaults the do command to the tscircuit AI gateway model", async () => {
   expect((await cli.getLastLlmRequestHeaders())?.["x-conversation-id"]).toMatch(
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
   );
+  expect((await cli.getLastLlmRequestHeaders())?.authorization).toBe("Bearer test-tsci-session-token");
   expect((await cli.getLastOutput()).trim().length).toBeGreaterThan(0);
   await expect(cli.getLastStderr()).resolves.toContain("[agent] done");
 }, 60_000);

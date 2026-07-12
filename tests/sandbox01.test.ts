@@ -5,10 +5,7 @@ import { getTestCli } from "./fixtures/getTestCli";
 
 test("runs do --sandbox from a temporary copy while leaving the original workspace readable", async () => {
   await using cli = await getTestCli();
-  await cli.files.write(
-    "./index.circuit.tsx",
-    `export default function Circuit() {\n  return <board width={10} height={10} />\n}\n`,
-  );
+  await cli.files.write("./index.circuit.tsx", `export default function Circuit() {\n  return <board width={10} height={10} />\n}\n`);
 
   const result = await cli.do(
     "Review this tscircuit project. First inspect the current directory with a tool and base your response only on those files.",

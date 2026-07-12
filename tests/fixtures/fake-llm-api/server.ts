@@ -214,7 +214,7 @@ function openAiChunk(content: string, finishReason: string | null = null) {
     object: "chat.completion.chunk",
     created: 1,
     model: "fake-model",
-    choices: [{ index: 0, delta: content ? { content } : {}, finish_reason: finishReason }],
+    choices: [{ index: 0, delta: content ? { role: "assistant", content } : {}, finish_reason: finishReason }],
   };
 }
 
@@ -256,6 +256,7 @@ function streamOpenAiToolCall(name: string, args: unknown): Response {
               {
                 index: 0,
                 delta: {
+                  role: "assistant",
                   tool_calls: [
                     {
                       index: 0,

@@ -194,10 +194,7 @@ export async function getTestCli(): Promise<TestCli> {
               ? join(homeDir, "AppData", "Roaming", "tscircuit-nodejs", "Config", "config.json")
               : join(homeDir, ".config", "tscircuit-nodejs", "config.json");
         await mkdir(dirname(configPath), { recursive: true });
-        await writeFile(
-          configPath,
-          `${JSON.stringify({ sessionToken: token }, null, 2)}\n`,
-        );
+        await writeFile(configPath, `${JSON.stringify({ sessionToken: token }, null, 2)}\n`);
       },
     },
   };

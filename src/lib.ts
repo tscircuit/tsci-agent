@@ -75,10 +75,7 @@ function createSandboxFiles(sandboxDir: string): SandboxFiles {
  * The sandbox is a filesystem copy, not a security boundary. Call dispose(), or
  * use `await using`, to remove the temporary files when you are done reading them.
  */
-export async function runPromptInSandbox(
-  prompt: string,
-  options: RunPromptInSandboxOptions = {},
-): Promise<SandboxPromptResult> {
+export async function runPromptInSandbox(prompt: string, options: RunPromptInSandboxOptions = {}): Promise<SandboxPromptResult> {
   ensurePiPackageDir();
 
   const { prepareWorkingDirectory, runAgentPrompt } = await import("./do-command");

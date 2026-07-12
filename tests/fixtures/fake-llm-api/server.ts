@@ -77,6 +77,7 @@ function normalizeVolatileText(input: string): string {
     .replace(/\/private\/var\/folders\/[^\s]+\/tsci-agent-[^\s]+\/workspace/g, "<sandbox-workspace>")
     .replace(/\/var\/folders\/[^\s]+\/tsci-agent-[^\s]+\/workspace/g, "<sandbox-workspace>")
     .replace(/\/tmp\/tsci-agent-[^\s]+\/workspace/g, "<sandbox-workspace>")
+    .replace(/^total \d+$/gm, "total <blocks>")
     .replace(/^[dl-][rwx@-]+\s+\d+\s+\S+\s+\S+\s+\d+\s+\w+\s+\d+\s+\d+:\d+\s+(.+)$/gm, "$1");
 }
 
@@ -191,8 +192,9 @@ async function findBestResponse(input: string, toolText: string | undefined, bod
   let best: { response: CachedResponse; score: number } | undefined;
 
   for (const response of responses) {
-    if (response.match === key) return response;
-    const score = phase === "initial" ? scoreMatch(key, response.match) : 0;
+    const normalizedMatch = normalizeVolatileText(response.match);
+    if (normalizedMatch === key) return response;
+    const score = phase === "initial" ? scoreMatch(key, normalizedMatch) : 0;
     if (!best || score > best.score) best = { response, score };
   }
 
@@ -214,7 +216,7 @@ function openAiChunk(content: string, finishReason: string | null = null) {
     object: "chat.completion.chunk",
     created: 1,
     model: "fake-model",
-    choices: [{ index: 0, delta: content ? { content } : {}, finish_reason: finishReason }],
+    choices: [{ index: 0, delta: content ? { role: "assistant", content } : {}, finish_reason: finishReason }],
   };
 }
 
@@ -256,6 +258,7 @@ function streamOpenAiToolCall(name: string, args: unknown): Response {
               {
                 index: 0,
                 delta: {
+                  role: "assistant",
                   tool_calls: [
                     {
                       index: 0,

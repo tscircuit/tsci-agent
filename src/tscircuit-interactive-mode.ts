@@ -1,8 +1,7 @@
 import { InteractiveMode, type InteractiveModeOptions } from "@earendil-works/pi-coding-agent";
 import type { AgentSessionRuntime } from "@earendil-works/pi-coding-agent";
 
-const COMPACT_HELP =
-  "Ctrl-C interrupt | Ctrl-L/Ctrl-D clear/exit | / commands | ! bash | Ctrl-O more";
+const COMPACT_HELP = "Ctrl-C interrupt | Ctrl-L/Ctrl-D clear/exit | / commands | ! bash | Ctrl-O more";
 const EXPANDED_HELP = [
   "Ctrl-C to interrupt",
   "Ctrl-L to clear",
@@ -11,8 +10,7 @@ const EXPANDED_HELP = [
   "! to run bash",
   "Ctrl-O to expand tools and startup help",
 ].join("\n");
-const ONBOARDING =
-  "Ask tsci agent to create, inspect, debug, or refactor tscircuit boards and packages.";
+const ONBOARDING = "Ask tsci agent to create, inspect, debug, or refactor tscircuit boards and packages.";
 
 function getCompactWelcome(): string {
   return `tscircuit agent\n${COMPACT_HELP}\nPress Ctrl-O to show full startup help and loaded resources.\n\n${ONBOARDING}`;

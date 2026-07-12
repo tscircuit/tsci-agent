@@ -23,10 +23,7 @@ test("runPromptInSandbox returns output and sandbox file helpers", async () => {
     process.env.PI_TELEMETRY = "0";
 
     await mkdir(cwd, { recursive: true });
-    await writeFile(
-      join(cwd, "index.circuit.tsx"),
-      `export default function Circuit() {\n  return <board width={10} height={10} />\n}\n`,
-    );
+    await writeFile(join(cwd, "index.circuit.tsx"), `export default function Circuit() {\n  return <board width={10} height={10} />\n}\n`);
 
     await using result = await runPromptInSandbox(
       "Review this tscircuit project. First inspect the current directory with a tool and base your response only on those files.",

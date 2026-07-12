@@ -21,16 +21,18 @@
     "bundle": "bun build src/cli.ts src/lib.ts --target bun --outdir dist && tsc --project tsconfig.types.json && bun run scripts/copy-skill.ts && bun run scripts/make-executable.ts",
     "build": "bun run bundle",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun test --max-concurrency 1",
+    "format:check": "prettier --check src tests scripts",
     "smoke": "./dist/cli.js --smoke-test-assets",
     "start": "bun run dist/cli.js",
     "prepack": "bun run build"
   },
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "^0.80.2"
+    "@earendil-works/pi-coding-agent": "^0.80.6"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "prettier": "^3.6.2",
     "skill": "github:tscircuit/skill",
     "typescript": "latest"
   },

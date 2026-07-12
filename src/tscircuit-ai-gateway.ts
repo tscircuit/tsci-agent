@@ -1,7 +1,7 @@
 import type { ModelRegistry } from "@earendil-works/pi-coding-agent";
 
 export const TSCIRCUIT_AI_GATEWAY_PROVIDER = "tscircuit-ai-gateway";
-export const TSCIRCUIT_AI_GATEWAY_MODEL = "openai/gpt-5.5";
+export const TSCIRCUIT_AI_GATEWAY_MODEL = "openai/gpt-5.6";
 export const TSCIRCUIT_AI_GATEWAY_MODEL_REF = `${TSCIRCUIT_AI_GATEWAY_PROVIDER}/${TSCIRCUIT_AI_GATEWAY_MODEL}`;
 
 export function registerTscircuitAiGatewayProvider(modelRegistry: ModelRegistry, conversationId: string): void {
@@ -24,7 +24,7 @@ export function registerTscircuitAiGatewayProvider(modelRegistry: ModelRegistry,
     models: [
       {
         id: TSCIRCUIT_AI_GATEWAY_MODEL,
-        name: "GPT-5.5 via tscircuit AI Gateway",
+        name: "GPT-5.6 via tscircuit AI Gateway",
         reasoning: false,
         input: ["text", "image"],
         contextWindow: 1000000,

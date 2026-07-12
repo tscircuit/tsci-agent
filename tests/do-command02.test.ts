@@ -30,8 +30,8 @@ test("defaults the do command to the tscircuit AI gateway model", async () => {
             },
             models: [
               {
-                id: "openai/gpt-5.5",
-                name: "GPT-5.5 via tscircuit AI Gateway",
+                id: "openai/gpt-5.6",
+                name: "GPT-5.6 via tscircuit AI Gateway",
                 reasoning: false,
                 input: ["text", "image"],
                 contextWindow: 1000000,

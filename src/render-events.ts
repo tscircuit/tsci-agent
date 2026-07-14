@@ -13,9 +13,11 @@ export function renderEvent(event: AgentSessionEvent): void {
     case "agent_start":
       console.error("[agent] start");
       break;
-    case "agent_end":
-      console.error("\n[agent] done");
+    case "agent_end": {
+      const failed = event.messages.some((message) => message.role === "assistant" && message.stopReason === "error");
+      console.error(failed ? "\n[agent] failed" : "\n[agent] done");
       break;
+    }
     case "turn_start":
       console.error("[turn] start");
       break;

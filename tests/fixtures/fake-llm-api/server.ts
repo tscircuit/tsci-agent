@@ -9,6 +9,7 @@ const responsesDir = join(__dirname, "responses");
 
 export interface FakeLlmApiServer {
   url: string;
+  failNextChatCompletion(status: number, body: unknown): void;
   getLastRequestHeaders(): Record<string, string> | undefined;
   stop(): Promise<void>;
 }
@@ -317,6 +318,7 @@ function openAiToolCallResponse(name: string, args: unknown): Response {
 
 export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
   let lastRequestHeaders: Record<string, string> | undefined;
+  let nextChatCompletionFailure: { status: number; body: unknown } | undefined;
 
   const server = Bun.serve({
     port: 0,
@@ -330,6 +332,12 @@ export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
       if (request.method === "POST" && url.pathname === "/v1/chat/completions") {
         try {
           lastRequestHeaders = Object.fromEntries(request.headers.entries());
+          if (nextChatCompletionFailure) {
+            const failure = nextChatCompletionFailure;
+            nextChatCompletionFailure = undefined;
+            return Response.json(failure.body, { status: failure.status });
+          }
+
           const body = await request.json();
           const input = getLastUserText(body);
           const toolText = getLastToolText(body);
@@ -363,6 +371,9 @@ export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
 
   return {
     url: `http://${server.hostname}:${server.port}`,
+    failNextChatCompletion(status, body) {
+      nextChatCompletionFailure = { status, body };
+    },
     getLastRequestHeaders() {
       return lastRequestHeaders;
     },

@@ -22,6 +22,7 @@ export interface TestCli extends AsyncDisposable {
   getLastStderr(): Promise<string>;
   getLastSandboxDir(): Promise<string | undefined>;
   getLastLlmRequestHeaders(): Promise<Record<string, string> | undefined>;
+  failNextLlmRequest(status: number, body: unknown): void;
   dispose(): Promise<void>;
   files: {
     ls(path: string): Promise<string[]>;
@@ -167,6 +168,9 @@ export async function getTestCli(): Promise<TestCli> {
     },
     async getLastLlmRequestHeaders() {
       return fakeLlmApi.getLastRequestHeaders();
+    },
+    failNextLlmRequest(status, body) {
+      fakeLlmApi.failNextChatCompletion(status, body);
     },
     dispose,
     async [Symbol.asyncDispose]() {

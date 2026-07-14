@@ -182,6 +182,12 @@ export async function runAgentPrompt(options: AgentPromptOptions): Promise<Agent
   try {
     if (options.report) console.error(`[session] ${session.sessionId} cwd=${cwd}`);
     await session.prompt(options.prompt, { expandPromptTemplates: true });
+
+    const lastAssistantMessage = [...session.messages].reverse().find((message) => message.role === "assistant");
+    if (lastAssistantMessage?.stopReason === "error") {
+      throw new Error(lastAssistantMessage.errorMessage || "The agent failed without an error message.");
+    }
+
     return { cwd, sessionId: session.sessionId };
   } finally {
     for (const unsubscribe of subscriptions) unsubscribe?.();

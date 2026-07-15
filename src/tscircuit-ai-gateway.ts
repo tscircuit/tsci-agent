@@ -16,7 +16,7 @@ export function registerTscircuitAiGatewayProvider(modelRegistry: ModelRegistry,
 
   modelRegistry.registerProvider(TSCIRCUIT_AI_GATEWAY_PROVIDER, {
     baseUrl: "https://aigateway.tscircuit.com",
-    api: "openai-completions",
+    api: "openai-responses",
     apiKey: "$TSCIRCUIT_JWT",
     headers: {
       "x-conversation-id": conversationId,
@@ -32,9 +32,6 @@ export function registerTscircuitAiGatewayProvider(modelRegistry: ModelRegistry,
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         compat: {
           supportsDeveloperRole: false,
-          supportsReasoningEffort: true,
-          supportsUsageInStreaming: false,
-          maxTokensField: "max_completion_tokens",
         },
       },
     ],

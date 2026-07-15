@@ -11,6 +11,7 @@ export interface FakeLlmApiServer {
   url: string;
   failNextChatCompletion(status: number, body: unknown): void;
   getLastRequestHeaders(): Record<string, string> | undefined;
+  getLastRequestBody(): Record<string, unknown> | undefined;
   stop(): Promise<void>;
 }
 
@@ -42,7 +43,7 @@ function extractText(value: unknown): string {
 }
 
 function getLastUserText(body: any): string {
-  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  const messages = Array.isArray(body?.messages) ? body.messages : Array.isArray(body?.input) ? body.input : [];
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i]?.role === "user") return extractText(messages[i].content);
   }
@@ -50,9 +51,10 @@ function getLastUserText(body: any): string {
 }
 
 function getLastToolText(body: any): string | undefined {
-  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  const messages = Array.isArray(body?.messages) ? body.messages : Array.isArray(body?.input) ? body.input : [];
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i]?.role === "tool") return extractText(messages[i].content);
+    if (messages[i]?.type === "function_call_output") return extractText(messages[i].output);
   }
   return undefined;
 }
@@ -316,8 +318,109 @@ function openAiToolCallResponse(name: string, args: unknown): Response {
   });
 }
 
+function responsesEnvelope(output: unknown[]) {
+  return {
+    id: "resp_fake",
+    object: "response",
+    created_at: 1,
+    status: "completed",
+    model: "fake-model",
+    output,
+    usage: {
+      input_tokens: 1,
+      input_tokens_details: { cached_tokens: 0 },
+      output_tokens: 1,
+      output_tokens_details: { reasoning_tokens: 0 },
+      total_tokens: 2,
+    },
+  };
+}
+
+function streamResponsesEvents(events: unknown[]): Response {
+  const encoder = new TextEncoder();
+  const body = new ReadableStream({
+    start(controller) {
+      for (const event of events) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+      }
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+
+  return new Response(body, {
+    headers: {
+      "content-type": "text/event-stream; charset=utf-8",
+      "cache-control": "no-cache",
+      connection: "keep-alive",
+    },
+  });
+}
+
+function streamResponsesText(output: string): Response {
+  const item = {
+    id: "msg_fake",
+    type: "message",
+    role: "assistant",
+    status: "completed",
+    content: [{ type: "output_text", text: output, annotations: [], logprobs: [] }],
+  };
+  const chunks = output.match(/.{1,24}/gs) ?? [output];
+
+  return streamResponsesEvents([
+    { type: "response.created", response: { id: "resp_fake", status: "in_progress" } },
+    {
+      type: "response.output_item.added",
+      output_index: 0,
+      item: { ...item, status: "in_progress", content: [] },
+    },
+    ...chunks.map((delta) => ({
+      type: "response.output_text.delta",
+      output_index: 0,
+      content_index: 0,
+      delta,
+    })),
+    { type: "response.output_item.done", output_index: 0, item },
+    { type: "response.completed", response: responsesEnvelope([item]) },
+  ]);
+}
+
+function streamResponsesToolCall(name: string, args: unknown): Response {
+  const argumentsJson = JSON.stringify(args);
+  const item = {
+    id: "fc_fake_ls",
+    type: "function_call",
+    call_id: "call_fake_ls",
+    name,
+    arguments: argumentsJson,
+    status: "completed",
+  };
+
+  return streamResponsesEvents([
+    { type: "response.created", response: { id: "resp_fake", status: "in_progress" } },
+    {
+      type: "response.output_item.added",
+      output_index: 0,
+      item: { ...item, status: "in_progress", arguments: "" },
+    },
+    {
+      type: "response.function_call_arguments.delta",
+      output_index: 0,
+      delta: argumentsJson,
+    },
+    {
+      type: "response.function_call_arguments.done",
+      output_index: 0,
+      arguments: argumentsJson,
+    },
+    { type: "response.output_item.done", output_index: 0, item },
+    { type: "response.completed", response: responsesEnvelope([item]) },
+  ]);
+}
+
 export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
   let lastRequestHeaders: Record<string, string> | undefined;
+  let lastRequestBody: Record<string, unknown> | undefined;
   let nextChatCompletionFailure: { status: number; body: unknown } | undefined;
 
   const server = Bun.serve({
@@ -339,6 +442,7 @@ export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
           }
 
           const body = await request.json();
+          lastRequestBody = body;
           const input = getLastUserText(body);
           const toolText = getLastToolText(body);
           const response = await findBestResponse(input, toolText, body);
@@ -365,6 +469,25 @@ export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
         }
       }
 
+      if (request.method === "POST" && url.pathname === "/v1/responses") {
+        try {
+          lastRequestHeaders = Object.fromEntries(request.headers.entries());
+          const body = await request.json();
+          lastRequestBody = body;
+          const input = getLastUserText(body);
+          const toolText = getLastToolText(body);
+          const response = await findBestResponse(input, toolText, body);
+
+          if (response.toolCall) {
+            return streamResponsesToolCall(response.toolCall.name, response.toolCall.args);
+          }
+
+          return streamResponsesText(renderCachedResponse(response, toolText));
+        } catch (error) {
+          return Response.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+        }
+      }
+
       return Response.json({ error: `Unhandled fake LLM route: ${request.method} ${url.pathname}` }, { status: 404 });
     },
   });
@@ -376,6 +499,9 @@ export async function startFakeLlmApiServer(): Promise<FakeLlmApiServer> {
     },
     getLastRequestHeaders() {
       return lastRequestHeaders;
+    },
+    getLastRequestBody() {
+      return lastRequestBody;
     },
     async stop() {
       await server.stop(true);

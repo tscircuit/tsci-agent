@@ -20,13 +20,10 @@ test("defaults the do command to the tscircuit AI gateway model", async () => {
           },
           "tscircuit-ai-gateway": {
             baseUrl: `${cli.fakeLlmApiUrl}/v1`,
-            api: "openai-completions",
+            api: "openai-responses",
             apiKey: "fake-jwt",
             compat: {
               supportsDeveloperRole: false,
-              supportsReasoningEffort: true,
-              supportsUsageInStreaming: false,
-              maxTokensField: "max_completion_tokens",
             },
             models: [
               {
@@ -54,6 +51,12 @@ test("defaults the do command to the tscircuit AI gateway model", async () => {
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
   );
   expect((await cli.getLastLlmRequestHeaders())?.authorization).toBe("Bearer test-tsci-session-token");
+  expect(await cli.getLastLlmRequestBody()).toMatchObject({
+    model: "openai/gpt-5.6-sol",
+    stream: true,
+    input: expect.any(Array),
+  });
+  expect(await cli.getLastLlmRequestBody()).not.toHaveProperty("messages");
   expect((await cli.getLastOutput()).trim().length).toBeGreaterThan(0);
   await expect(cli.getLastStderr()).resolves.toContain("[agent] done");
 }, 60_000);

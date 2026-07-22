@@ -50,6 +50,12 @@ async function main() {
     return;
   }
 
+  if (args[0] === "auth") {
+    const { runAuthCommand } = await import("./openai-auth");
+    await runAuthCommand(args.slice(1));
+    return;
+  }
+
   const { runInteractive } = await import("./interactive");
   await runInteractive(args);
 }

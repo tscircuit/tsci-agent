@@ -22,6 +22,27 @@ bun run dev -- "Create a minimal tscircuit LED board"
 
 No global `pi` executable is required.
 
+## OpenAI login
+
+Authenticate directly with a ChatGPT account and store the resulting OAuth credentials in Pi's authentication storage:
+
+```bash
+tsci-agent auth login --openai
+```
+
+The command opens the OpenAI browser login flow. You can inspect or remove the stored credentials with:
+
+```bash
+tsci-agent auth status --openai
+tsci-agent auth logout --openai
+```
+
+After logging in, use the default supported OpenAI subscription model:
+
+```bash
+tsci-agent do --use-openai --prompt "Fix this circuit"
+```
+
 ## `do` command
 
 Use `do` for a non-interactive SDK run that prints a human-readable stream of agent activity:

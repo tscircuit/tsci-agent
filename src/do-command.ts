@@ -13,6 +13,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { reportDiagnostics } from "./diagnostics";
 import { resolveRequestedModel } from "./model";
+import { OPENAI_DEFAULT_MODEL_REF } from "./openai-auth";
 import { findTscircuitSkill } from "./paths";
 import { createAuthStorage, createResourceLoaderOptions, createSessionOptionOverrides } from "./pi-sdk-options";
 import { renderEvent } from "./render-events";
@@ -24,6 +25,17 @@ interface DoCommandOptions {
   dir: string;
   sandbox: boolean;
   piArgs: string[];
+}
+
+export function applyUseOpenAiShortcut(piArgs: string[], useOpenAi: boolean): string[] {
+  if (!useOpenAi) return piArgs;
+  if (piArgs.some((arg) => arg === "--model" || arg.startsWith("--model="))) {
+    throw new Error("--use-openai cannot be combined with --model.");
+  }
+  if (piArgs.some((arg) => arg === "--provider" || arg.startsWith("--provider="))) {
+    throw new Error("--use-openai cannot be combined with --provider.");
+  }
+  return [...piArgs, "--model", OPENAI_DEFAULT_MODEL_REF];
 }
 
 function readValue(args: string[], index: number, option: string): string {
@@ -40,6 +52,7 @@ function parseDoCommand(args: string[]): DoCommandOptions {
     sandbox: false,
     piArgs: [],
   };
+  let useOpenAi = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -81,12 +94,19 @@ function parseDoCommand(args: string[]): DoCommandOptions {
       continue;
     }
 
+    if (arg === "--use-openai") {
+      useOpenAi = true;
+      continue;
+    }
+
     options.piArgs.push(arg);
   }
 
   if (!options.prompt) {
     throw new Error("`tsci-agent do` requires --prompt <text>.");
   }
+
+  options.piArgs = applyUseOpenAiShortcut(options.piArgs, useOpenAi);
 
   return options;
 }

@@ -22,6 +22,36 @@ bun run dev -- "Create a minimal tscircuit LED board"
 
 No global `pi` executable is required.
 
+## OpenAI Codex login
+
+Authenticate directly with a ChatGPT account and store the resulting Codex OAuth credentials in Pi's authentication storage:
+
+```bash
+tsci-agent openai login
+```
+
+The command opens the OpenAI browser login flow. You can inspect or remove the stored credentials with:
+
+```bash
+tsci-agent openai status
+tsci-agent openai logout
+```
+
+After logging in, select the provider and any supported model explicitly:
+
+```bash
+tsci-agent do \
+  --provider openai-codex \
+  --model openai-codex/<model> \
+  --prompt "Create an LED circuit"
+```
+
+Or use the default supported Codex model:
+
+```bash
+tsci-agent do --use-codex --prompt "Fix this circuit"
+```
+
 ## `do` command
 
 Use `do` for a non-interactive SDK run that prints a human-readable stream of agent activity:

@@ -2,9 +2,12 @@ export function usage(): string {
   return `Usage:
   tsci-agent [--help] [--version] [initial prompt...]
   tsci-agent do --prompt <prompt> [--dir <dir>] [--sandbox] [pi sdk options...]
+  tsci-agent openai <login|logout|status>
 
 Commands:
   do    Run Pi through the SDK non-interactively with a human-readable event stream.
+  openai
+        Log in to, log out of, or check OpenAI Codex subscription authentication.
 
 Options for "do":
   --prompt, -p <text>   Prompt to send to the agent.
@@ -12,6 +15,7 @@ Options for "do":
   --sandbox             Run in a temporary copy of --dir. This protects the
                         original directory from ordinary writes, but is not a
                         security sandbox.
+  --use-codex           Use OpenAI Codex with the default supported model.
 
 Supported Pi SDK options after "do":
   --model <model>       Model id, fuzzy id, or provider/model.

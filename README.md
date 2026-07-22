@@ -27,14 +27,14 @@ No global `pi` executable is required.
 Authenticate directly with a ChatGPT account and store the resulting Codex OAuth credentials in Pi's authentication storage:
 
 ```bash
-tsci-agent openai login
+tsci-agent auth login openai-codex
 ```
 
 The command opens the OpenAI browser login flow. You can inspect or remove the stored credentials with:
 
 ```bash
-tsci-agent openai status
-tsci-agent openai logout
+tsci-agent auth status openai-codex
+tsci-agent auth logout openai-codex
 ```
 
 After logging in, select the provider and any supported model explicitly:

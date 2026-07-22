@@ -40,10 +40,11 @@ async function promptInTerminal(message: string, signal?: AbortSignal): Promise<
   }
 }
 
-export async function runOpenAiCommand(args: string[], dependencies: OpenAiCommandDependencies = {}): Promise<void> {
+export async function runAuthCommand(args: string[], dependencies: OpenAiCommandDependencies = {}): Promise<void> {
   const action = args[0];
-  if (!action || !["login", "logout", "status"].includes(action) || args.length !== 1) {
-    throw new Error("Usage: tsci-agent openai <login|logout|status>");
+  const provider = args[1];
+  if (!action || !["login", "logout", "status"].includes(action) || provider !== OPENAI_CODEX_PROVIDER || args.length !== 2) {
+    throw new Error("Usage: tsci-agent auth <login|logout|status> openai-codex");
   }
 
   const authStorage = dependencies.authStorage ?? AuthStorage.create();
@@ -53,7 +54,7 @@ export async function runOpenAiCommand(args: string[], dependencies: OpenAiComma
     console.log(
       credential?.type === "oauth"
         ? "OpenAI Codex credentials are stored."
-        : "Not logged in to OpenAI Codex. Run `tsci-agent openai login`.",
+        : "Not logged in to OpenAI Codex. Run `tsci-agent auth login openai-codex`.",
     );
     return;
   }

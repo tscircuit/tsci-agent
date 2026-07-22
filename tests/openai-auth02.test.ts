@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { AuthStorage } from "@earendil-works/pi-coding-agent";
-import { OPENAI_CODEX_PROVIDER, runOpenAiCommand } from "../src/openai-auth";
+import { OPENAI_CODEX_PROVIDER, runAuthCommand } from "../src/openai-auth";
 
 test("runs the OpenAI Codex browser login flow through Pi auth storage", async () => {
   const authStorage = AuthStorage.inMemory();
@@ -27,7 +27,7 @@ test("runs the OpenAI Codex browser login flow through Pi auth storage", async (
   };
 
   try {
-    await runOpenAiCommand(["login"], {
+    await runAuthCommand(["login", OPENAI_CODEX_PROVIDER], {
       authStorage,
       openBrowser: (url) => openedUrls.push(url),
       prompt: async () => "",

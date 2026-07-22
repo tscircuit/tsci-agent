@@ -2,12 +2,11 @@ export function usage(): string {
   return `Usage:
   tsci-agent [--help] [--version] [initial prompt...]
   tsci-agent do --prompt <prompt> [--dir <dir>] [--sandbox] [pi sdk options...]
-  tsci-agent openai <login|logout|status>
+  tsci-agent auth <login|logout|status> openai-codex
 
 Commands:
   do    Run Pi through the SDK non-interactively with a human-readable event stream.
-  openai
-        Log in to, log out of, or check OpenAI Codex subscription authentication.
+  auth  Manage provider authentication. Initially supports openai-codex.
 
 Options for "do":
   --prompt, -p <text>   Prompt to send to the agent.

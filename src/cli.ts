@@ -50,9 +50,9 @@ async function main() {
     return;
   }
 
-  if (args[0] === "openai") {
-    const { runOpenAiCommand } = await import("./openai-auth");
-    await runOpenAiCommand(args.slice(1));
+  if (args[0] === "auth") {
+    const { runAuthCommand } = await import("./openai-auth");
+    await runAuthCommand(args.slice(1));
     return;
   }
 

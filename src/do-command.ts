@@ -13,7 +13,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { reportDiagnostics } from "./diagnostics";
 import { resolveRequestedModel } from "./model";
-import { OPENAI_CODEX_DEFAULT_MODEL_REF } from "./openai-auth";
+import { OPENAI_DEFAULT_MODEL_REF } from "./openai-auth";
 import { findTscircuitSkill } from "./paths";
 import { createAuthStorage, createResourceLoaderOptions, createSessionOptionOverrides } from "./pi-sdk-options";
 import { renderEvent } from "./render-events";
@@ -27,15 +27,15 @@ interface DoCommandOptions {
   piArgs: string[];
 }
 
-export function applyUseCodexShortcut(piArgs: string[], useCodex: boolean): string[] {
-  if (!useCodex) return piArgs;
+export function applyUseOpenAiShortcut(piArgs: string[], useOpenAi: boolean): string[] {
+  if (!useOpenAi) return piArgs;
   if (piArgs.some((arg) => arg === "--model" || arg.startsWith("--model="))) {
-    throw new Error("--use-codex cannot be combined with --model.");
+    throw new Error("--use-openai cannot be combined with --model.");
   }
   if (piArgs.some((arg) => arg === "--provider" || arg.startsWith("--provider="))) {
-    throw new Error("--use-codex cannot be combined with --provider.");
+    throw new Error("--use-openai cannot be combined with --provider.");
   }
-  return [...piArgs, "--model", OPENAI_CODEX_DEFAULT_MODEL_REF];
+  return [...piArgs, "--model", OPENAI_DEFAULT_MODEL_REF];
 }
 
 function readValue(args: string[], index: number, option: string): string {
@@ -52,7 +52,7 @@ function parseDoCommand(args: string[]): DoCommandOptions {
     sandbox: false,
     piArgs: [],
   };
-  let useCodex = false;
+  let useOpenAi = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -94,8 +94,8 @@ function parseDoCommand(args: string[]): DoCommandOptions {
       continue;
     }
 
-    if (arg === "--use-codex") {
-      useCodex = true;
+    if (arg === "--use-openai") {
+      useOpenAi = true;
       continue;
     }
 
@@ -106,7 +106,7 @@ function parseDoCommand(args: string[]): DoCommandOptions {
     throw new Error("`tsci-agent do` requires --prompt <text>.");
   }
 
-  options.piArgs = applyUseCodexShortcut(options.piArgs, useCodex);
+  options.piArgs = applyUseOpenAiShortcut(options.piArgs, useOpenAi);
 
   return options;
 }

@@ -3,8 +3,8 @@ import { createInterface } from "node:readline/promises";
 import { AuthStorage } from "@earendil-works/pi-coding-agent";
 
 export const OPENAI_CODEX_PROVIDER = "openai-codex";
-export const OPENAI_CODEX_DEFAULT_MODEL = "gpt-5.6-terra";
-export const OPENAI_CODEX_DEFAULT_MODEL_REF = `${OPENAI_CODEX_PROVIDER}/${OPENAI_CODEX_DEFAULT_MODEL}`;
+export const OPENAI_DEFAULT_MODEL = "gpt-5.6-terra";
+export const OPENAI_DEFAULT_MODEL_REF = `${OPENAI_CODEX_PROVIDER}/${OPENAI_DEFAULT_MODEL}`;
 
 interface OpenAiAuthStorage {
   get(provider: string): ReturnType<AuthStorage["get"]>;
@@ -42,9 +42,9 @@ async function promptInTerminal(message: string, signal?: AbortSignal): Promise<
 
 export async function runAuthCommand(args: string[], dependencies: OpenAiCommandDependencies = {}): Promise<void> {
   const action = args[0];
-  const provider = args[1];
-  if (!action || !["login", "logout", "status"].includes(action) || provider !== OPENAI_CODEX_PROVIDER || args.length !== 2) {
-    throw new Error("Usage: tsci-agent auth <login|logout|status> openai-codex");
+  const providerFlag = args[1];
+  if (!action || !["login", "logout", "status"].includes(action) || providerFlag !== "--openai" || args.length !== 2) {
+    throw new Error("Usage: tsci-agent auth <login|logout|status> --openai");
   }
 
   const authStorage = dependencies.authStorage ?? AuthStorage.create();
@@ -52,9 +52,7 @@ export async function runAuthCommand(args: string[], dependencies: OpenAiCommand
   if (action === "status") {
     const credential = authStorage.get(OPENAI_CODEX_PROVIDER);
     console.log(
-      credential?.type === "oauth"
-        ? "OpenAI Codex credentials are stored."
-        : "Not logged in to OpenAI Codex. Run `tsci-agent auth login openai-codex`.",
+      credential?.type === "oauth" ? "OpenAI credentials are stored." : "Not logged in to OpenAI. Run `tsci-agent auth login --openai`.",
     );
     return;
   }
@@ -62,7 +60,7 @@ export async function runAuthCommand(args: string[], dependencies: OpenAiCommand
   if (action === "logout") {
     const wasLoggedIn = authStorage.get(OPENAI_CODEX_PROVIDER)?.type === "oauth";
     authStorage.logout(OPENAI_CODEX_PROVIDER);
-    console.log(wasLoggedIn ? "Logged out of OpenAI Codex." : "Already logged out of OpenAI Codex.");
+    console.log(wasLoggedIn ? "Logged out of OpenAI." : "Already logged out of OpenAI.");
     return;
   }
 
@@ -92,5 +90,5 @@ export async function runAuthCommand(args: string[], dependencies: OpenAiCommand
     promptAbort.abort();
   }
 
-  console.log("Logged in to OpenAI Codex. Your credentials were stored by Pi.");
+  console.log("Logged in to OpenAI. Your credentials were stored by Pi.");
 }

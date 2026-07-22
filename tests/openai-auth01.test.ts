@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { AuthStorage } from "@earendil-works/pi-coding-agent";
 import { OPENAI_CODEX_PROVIDER, runAuthCommand } from "../src/openai-auth";
 
-test("reports and removes stored OpenAI Codex credentials", async () => {
+test("reports and removes stored OpenAI credentials", async () => {
   const authStorage = AuthStorage.inMemory({
     [OPENAI_CODEX_PROVIDER]: {
       type: "oauth",
@@ -16,17 +16,17 @@ test("reports and removes stored OpenAI Codex credentials", async () => {
   console.log = (...values) => output.push(values.join(" "));
 
   try {
-    await runAuthCommand(["status", OPENAI_CODEX_PROVIDER], { authStorage });
-    await runAuthCommand(["logout", OPENAI_CODEX_PROVIDER], { authStorage });
-    await runAuthCommand(["status", OPENAI_CODEX_PROVIDER], { authStorage });
+    await runAuthCommand(["status", "--openai"], { authStorage });
+    await runAuthCommand(["logout", "--openai"], { authStorage });
+    await runAuthCommand(["status", "--openai"], { authStorage });
   } finally {
     console.log = originalLog;
   }
 
   expect(output).toEqual([
-    "OpenAI Codex credentials are stored.",
-    "Logged out of OpenAI Codex.",
-    "Not logged in to OpenAI Codex. Run `tsci-agent auth login openai-codex`.",
+    "OpenAI credentials are stored.",
+    "Logged out of OpenAI.",
+    "Not logged in to OpenAI. Run `tsci-agent auth login --openai`.",
   ]);
   expect(authStorage.get(OPENAI_CODEX_PROVIDER)).toBeUndefined();
 });

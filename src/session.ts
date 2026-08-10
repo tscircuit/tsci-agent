@@ -54,6 +54,7 @@ const HEADER_READ_BYTES = 8192;
 
 async function readSessionHeaderCwd(path: string): Promise<string | undefined> {
   let fd;
+  
   try {
     fd = await open(path, "r");
     const buffer = new Uint8Array(HEADER_READ_BYTES);

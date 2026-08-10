@@ -5,7 +5,6 @@ import {
   getAgentDir,
   ModelRegistry,
   parseArgs,
-  SessionManager,
   SettingsManager,
   type CreateAgentSessionRuntimeFactory,
 } from "@earendil-works/pi-coding-agent";
@@ -13,6 +12,7 @@ import { reportDiagnostics } from "./diagnostics";
 import { resolveRequestedModel } from "./model";
 import { findTscircuitSkill } from "./paths";
 import { createAuthStorage, createResourceLoaderOptions, createSessionOptionOverrides } from "./pi-sdk-options";
+import { createSessionManager } from "./session";
 import { TscircuitInteractiveMode } from "./tscircuit-interactive-mode";
 import { registerTscircuitAiGatewayProvider, resolveDefaultModelArg } from "./tscircuit-ai-gateway";
 
@@ -24,10 +24,9 @@ export async function runInteractive(args: string[]): Promise<void> {
 
   const cwd = process.cwd();
   const agentDir = getAgentDir();
-  const skillPath = await findTscircuitSkill();
+  const [skillPath, sessionManager] = await Promise.all([findTscircuitSkill(), createSessionManager(parsed, cwd, parsed.sessionDir)]);
   const authStorage = createAuthStorage(parsed);
   const modelRegistry = ModelRegistry.create(authStorage);
-  const sessionManager = SessionManager.create(cwd, parsed.sessionDir);
   registerTscircuitAiGatewayProvider(modelRegistry, sessionManager.getSessionId());
   const model = resolveRequestedModel(modelRegistry, parsed.provider, resolveDefaultModelArg(parsed.model));
   const settingsManager = SettingsManager.create(cwd, agentDir);

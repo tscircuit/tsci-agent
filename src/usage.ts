@@ -1,12 +1,23 @@
 export function usage(): string {
   return `Usage:
-  tsci-agent [--help] [--version] [initial prompt...]
+  tsci-agent [options] [initial prompt...]
   tsci-agent do --prompt <prompt> [--dir <dir>] [--sandbox] [pi sdk options...]
   tsci-agent auth <login|logout|status> --openai
 
 Commands:
   do    Run Pi through the SDK non-interactively with a human-readable event stream.
   auth  Manage provider authentication. Initially supports --openai.
+
+Options:
+  --help, -h               Show this help and exit.
+  --version, -v            Print the version and exit.
+  --continue, -c           Continue the most recent session.
+  --resume, -r             Select a session to resume from a numbered list.
+  --session <path|id>      Use a specific session file or partial UUID.
+  --session-id <id>        Use an exact project session ID, creating it if missing.
+  --fork <path|id>         Fork a session file or partial UUID into a new session.
+  --session-dir <dir>      Directory for session storage and lookup.
+  --no-session             Don't save session (ephemeral).
 
 Options for "do":
   --prompt, -p <text>   Prompt to send to the agent.

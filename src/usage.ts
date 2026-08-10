@@ -9,9 +9,9 @@ Commands:
   auth  Manage provider authentication. Initially supports --openai.
 
 Options:
-  --help, -h             Show this help and exit.
-  --version, -v          Print the version and exit.
-  --continue, -c         Continue the most recent session.
+  --help, -h               Show this help and exit.
+  --version, -v            Print the version and exit.
+  --continue, -c           Continue the most recent session.
   --resume, -r             Select a session to resume from a numbered list.
   --session <path|id>      Use a specific session file or partial UUID.
   --session-id <id>        Use an exact project session ID, creating it if missing.

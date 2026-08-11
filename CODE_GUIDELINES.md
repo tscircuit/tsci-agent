@@ -14,11 +14,11 @@ We never use more than two parameters in a function, whenever there are more tha
 ```ts
 // GOOD: single named-parameter object
 function renderSymbol(params: { symbolName: string; x: number; y: number; ccwRotationDegrees: number }) {}
-renderSymbol({ symbolName: "ground_down", x: 5, y: 10, ccwRotationDegrees: 90 })
+renderSymbol({ symbolName: "ground_down", x: 5, y: 10, ccwRotationDegrees: 90 });
 
 // BAD: positional params, call site is unreadable
 function renderSymbol(symbolName: string, x: number, y: number, rotation: number) {}
-renderSymbol("ground_down", 5, 10, 90)
+renderSymbol("ground_down", 5, 10, 90);
 ```
 
 - [core#422](https://github.com/tscircuit/core/pull/422#discussion_r1885804180)
@@ -26,6 +26,7 @@ renderSymbol("ground_down", 5, 10, 90)
 ## 2. Context-Passing Pattern
 
 The context-passing pattern means using a two-parameter function where...
+
 - the first parameter is a function-specific named object
 - the second parameter is a common named object ("the context")
 
@@ -36,13 +37,7 @@ export function renderSymbol(params: { symbolName: string; shape: any }, ctx: Ap
 }
 
 // BAD: context fields spread into params — no reusable context, grows unbounded
-export function renderSymbol(params: {
-  symbolName: string
-  shape: any
-  db: Db
-  logger: Logger
-  config: Config
-}) {
+export function renderSymbol(params: { symbolName: string; shape: any; db: Db; logger: Logger; config: Config }) {
   // ...
 }
 ```
@@ -60,13 +55,13 @@ There are some words that are so bad, that a more domain-specific word is always
 
 ```ts
 // GOOD: say the thing
-const currentOrderDetails = await getCart()
-const userProfile = res.body
+const currentOrderDetails = await getCart();
+const userProfile = res.body;
 function normalizeNet(net) {}
 
 // BAD: vague filler words
-const cartData = await getCart()
-const userInfo = res.body
+const cartData = await getCart();
+const userInfo = res.body;
 function process(value) {}
 ```
 
@@ -103,7 +98,6 @@ around.
 
 Enum strings should always be `"snake_case"` in every context. For example: `"circular_plated_hole"`
 
-
 ## 5. Variable Transparency (DO NOT RENAME UNLESS DISAMBIGUATING)
 
 Variable transparency means a variable has the same name as it traverses throughout the codebase.
@@ -118,8 +112,8 @@ There is an exception to this, say you have `userProfile` but you have two `user
 function. In this case, you should **rename both of the variables to disambiguate (differentiate) them**
 
 ```ts
-const currentUserProfile = userProfile
-const friendUserProfile = await getFriend(userProfile)
+const currentUserProfile = userProfile;
+const friendUserProfile = await getFriend(userProfile);
 ```
 
 ### 5.1 Never Rename a Transparent Variable
@@ -129,7 +123,7 @@ keep them the same unless you are disambiguating
 
 ```ts
 // BAD: DO NOT DO THIS
-const userProfile = ctx.user_profile
+const userProfile = ctx.user_profile;
 ```
 
 ## 6. Use Conventional Clear Naming
@@ -145,7 +139,6 @@ Names should be clear and conventional.
   - GOOD: `realToPxTransform`, `realToSvgMat`
   - BAD: `mat`, `transform`
 
-
 ## 7. Use `transformation-matrix` when computing 2d transformations. Do Not Write Math With Scaling!
 
 Math with scaling is unmaintainable and easy to mess up.
@@ -160,25 +153,31 @@ modules and import it, so the entrypoint reads like a summary.
 
 ```ts
 // GOOD: index.ts imports and orchestrates
-import { getCircuitFiles } from "./get-circuit-files"
-import { renderFilesToCircuitJson } from "./render-files-to-circuit-json"
-import { writeBuildOutput } from "./write-build-output"
+import { getCircuitFiles } from "./get-circuit-files";
+import { renderFilesToCircuitJson } from "./render-files-to-circuit-json";
+import { writeBuildOutput } from "./write-build-output";
 
 export async function build(opts: BuildOptions) {
-  const files = await getCircuitFiles(opts.dir)
-  const circuitJson = await renderFilesToCircuitJson(files)
-  await writeBuildOutput(circuitJson, opts)
+  const files = await getCircuitFiles(opts.dir);
+  const circuitJson = await renderFilesToCircuitJson(files);
+  await writeBuildOutput(circuitJson, opts);
 }
 
 // BAD: index.ts defines every helper itself
-function getCircuitFiles(dir: string) { /* ...20 lines... */ }
-function renderFilesToCircuitJson(files: string[]) { /* ...40 lines... */ }
-function writeBuildOutput(json: CircuitJson, opts: BuildOptions) { /* ...30 lines... */ }
+function getCircuitFiles(dir: string) {
+  /* ...20 lines... */
+}
+function renderFilesToCircuitJson(files: string[]) {
+  /* ...40 lines... */
+}
+function writeBuildOutput(json: CircuitJson, opts: BuildOptions) {
+  /* ...30 lines... */
+}
 
 export async function build(opts: BuildOptions) {
-  const files = getCircuitFiles(opts.dir)
-  const circuitJson = renderFilesToCircuitJson(files)
-  writeBuildOutput(circuitJson, opts)
+  const files = getCircuitFiles(opts.dir);
+  const circuitJson = renderFilesToCircuitJson(files);
+  writeBuildOutput(circuitJson, opts);
 }
 ```
 
@@ -198,7 +197,7 @@ function normalizeNet(net: Net) {
 }
 
 function processNets(nets: Net[]) {
-  return nets.map(normalizeNet)
+  return nets.map(normalizeNet);
 }
 
 // BAD: named closure trapped inside the function
@@ -206,12 +205,12 @@ function processNets(nets: Net[]) {
   function normalizeNet(net: Net) {
     // ...
   }
-  return nets.map(normalizeNet)
+  return nets.map(normalizeNet);
 }
 ```
 
 Anonymous inline callbacks (`nets.map((net) => ...)`) are fine. This rule targets
-*named* `function foo()` / `const foo = () => ...` declarations nested inside a
+_named_ `function foo()` / `const foo = () => ...` declarations nested inside a
 larger function body.
 
 ## 3. Avoid `as any` or `as unknown`
@@ -221,10 +220,10 @@ assistants reach for them to silence a type error instead of fixing the type.
 
 ```ts
 // GOOD: type the value, let the compiler catch mistakes
-const pkg = JSON.parse(body) as Package
-ship(pkg.pakage_id) // compile error: did you mean package_id?
+const pkg = JSON.parse(body) as Package;
+ship(pkg.pakage_id); // compile error: did you mean package_id?
 
 // BAD: casts away the error, loses all type safety
-const pkg = JSON.parse(body) as any
-ship(pkg.pakage_id) // typo silently compiles, fails at runtime
+const pkg = JSON.parse(body) as any;
+ship(pkg.pakage_id); // typo silently compiles, fails at runtime
 ```

@@ -1,7 +1,7 @@
 const UTF8_DECODER = new TextDecoder();
 
 export function replaceResumeCommandPi(text: string): string {
-  return text.replace(/pi (?=--session)/, "tsci-agent ");
+  return text.replace(/pi (?=--session)/, "tsci agent ");
 }
 
 export function rebrandResumeChunk(chunk: string | Uint8Array): string | Uint8Array {

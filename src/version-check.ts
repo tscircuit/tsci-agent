@@ -36,7 +36,6 @@ export async function checkForTsciAgentUpdate(
     const response = await (options.fetch ?? globalThis.fetch)(LATEST_VERSION_URL, {
       headers: {
         accept: "application/json",
-        "User-Agent": `tsci-agent/${currentVersion}`,
       },
       signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
     });

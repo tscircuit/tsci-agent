@@ -7,11 +7,6 @@ export interface TsciAgentRelease {
   version: string;
 }
 
-interface VersionCheckOptions {
-  timeoutMs?: number;
-  fetch?: typeof globalThis.fetch;
-}
-
 export function isNewerTsciAgentVersion(candidateVersion: string, currentVersion: string): boolean {
   if (!currentVersion || currentVersion === "0.0.0" || !candidateVersion || candidateVersion === "0.0.0") {
     return false;
@@ -24,20 +19,17 @@ export function isNewerTsciAgentVersion(candidateVersion: string, currentVersion
   }
 }
 
-export async function checkForTsciAgentUpdate(
-  currentVersion: string,
-  options: VersionCheckOptions = {},
-): Promise<TsciAgentRelease | undefined> {
+export async function checkForTsciAgentUpdate(currentVersion: string): Promise<TsciAgentRelease | undefined> {
   if (!currentVersion || currentVersion === "0.0.0" || process.env.TSCI_AGENT_SKIP_VERSION_CHECK || process.env.PI_OFFLINE) {
     return undefined;
   }
 
   try {
-    const response = await (options.fetch ?? globalThis.fetch)(LATEST_VERSION_URL, {
+    const response = await fetch(LATEST_VERSION_URL, {
       headers: {
         accept: "application/json",
       },
-      signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
     });
     if (!response.ok) return undefined;
 

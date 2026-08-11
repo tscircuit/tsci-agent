@@ -24,7 +24,7 @@ export function rebrandResumeChunk(chunk: string | Uint8Array): string | Uint8Ar
 
 function installResumeCommandRebrand(): void {
   const originalWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (chunk: Parameters<typeof process.stdout.write>[0], ...args: any[]): boolean => {
+  process.stdout.write = (chunk: Parameters<typeof process.stdout.write>[0], ...args: unknown[]): boolean => {
     const rebranded = rebrandResumeChunk(chunk);
     return originalWrite(rebranded as string, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
   };

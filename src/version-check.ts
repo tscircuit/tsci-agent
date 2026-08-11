@@ -42,8 +42,8 @@ export async function checkForTsciAgentUpdate(
     });
     if (!response.ok) return undefined;
 
-    const data = (await response.json()) as { version?: unknown };
-    if (typeof data.version !== "string" || !isNewerTsciAgentVersion(data.version, currentVersion)) return undefined;
+    const data = (await response.json()) as { version?: string };
+    if (!data.version || !isNewerTsciAgentVersion(data.version, currentVersion)) return undefined;
 
     return { version: data.version.trim() };
   } catch {

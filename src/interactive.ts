@@ -10,7 +10,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { reportDiagnostics } from "./diagnostics";
 import { resolveRequestedModel } from "./model";
-import { findTscircuitSkill } from "./paths";
+import { findPackageVersion, findTscircuitSkill } from "./paths";
 import { createAuthStorage, createResourceLoaderOptions, createSessionOptionOverrides } from "./pi-sdk-options";
 import { createSessionManager } from "./session";
 import { TscircuitInteractiveMode } from "./tscircuit-interactive-mode";
@@ -24,7 +24,11 @@ export async function runInteractive(args: string[]): Promise<void> {
 
   const cwd = process.cwd();
   const agentDir = getAgentDir();
-  const [skillPath, sessionManager] = await Promise.all([findTscircuitSkill(), createSessionManager(parsed, cwd, parsed.sessionDir)]);
+  const [skillPath, sessionManager, version] = await Promise.all([
+    findTscircuitSkill(),
+    createSessionManager(parsed, cwd, parsed.sessionDir),
+    findPackageVersion(),
+  ]);
   const authStorage = createAuthStorage(parsed);
   const modelRegistry = ModelRegistry.create(authStorage);
   registerTscircuitAiGatewayProvider(modelRegistry, sessionManager.getSessionId());
@@ -60,13 +64,17 @@ export async function runInteractive(args: string[]): Promise<void> {
     sessionManager,
   });
 
-  const mode = new TscircuitInteractiveMode(runtime, {
-    migratedProviders: [],
-    modelFallbackMessage: runtime.modelFallbackMessage,
-    initialMessage: parsed.messages.join(" ") || undefined,
-    initialImages: [],
-    initialMessages: [],
-  });
+  const mode = new TscircuitInteractiveMode(
+    runtime,
+    {
+      migratedProviders: [],
+      modelFallbackMessage: runtime.modelFallbackMessage,
+      initialMessage: parsed.messages.join(" ") || undefined,
+      initialImages: [],
+      initialMessages: [],
+    },
+    version,
+  );
 
   await mode.run();
 }

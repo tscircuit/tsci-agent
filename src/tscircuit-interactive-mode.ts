@@ -22,15 +22,12 @@ export function rebrandResumeChunk(chunk: string | Uint8Array): string | Uint8Ar
   return text.includes("To resume this session") ? replaceResumeCommandPi(text) : chunk;
 }
 
-type StdoutWrite = (chunk: string | Uint8Array, ...args: unknown[]) => boolean;
-
-function installResumeCommandRebrand() {
+function installResumeCommandRebrand(): void {
   const originalWrite = process.stdout.write.bind(process.stdout);
-  const wrappedWrite: StdoutWrite = (chunk, ...args) => {
+  process.stdout.write = (chunk: Parameters<typeof process.stdout.write>[0], ...args: any[]): boolean => {
     const rebranded = rebrandResumeChunk(chunk);
-    return originalWrite(rebranded, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
+    return originalWrite(rebranded as string, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
   };
-  process.stdout.write = wrappedWrite;
 }
 
 function getCompactWelcome(): string {

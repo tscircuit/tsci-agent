@@ -37,7 +37,7 @@ export class TscircuitInteractiveMode extends InteractiveMode {
   override async init(): Promise<void> {
     await super.init();
 
-    void checkForTsciAgentUpdate(this.tsciAgentVersion).then((release) => {
+    checkForTsciAgentUpdate(this.tsciAgentVersion).then((release) => {
       if (release) this.showTsciAgentUpdateNotification(release);
     });
 

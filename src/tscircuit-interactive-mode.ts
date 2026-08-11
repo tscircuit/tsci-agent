@@ -1,5 +1,6 @@
 import { InteractiveMode, type InteractiveModeOptions } from "@earendil-works/pi-coding-agent";
 import type { AgentSessionRuntime } from "@earendil-works/pi-coding-agent";
+import { installResumeCommandRebrand, installTerminalTitleRebrand } from "./rebrands";
 
 const COMPACT_HELP = "Ctrl-C interrupt | Ctrl-L/Ctrl-D clear/exit | / commands | ! bash | Ctrl-O more";
 const EXPANDED_HELP = [
@@ -23,6 +24,8 @@ function getExpandedWelcome(): string {
 export class TscircuitInteractiveMode extends InteractiveMode {
   constructor(runtimeHost: AgentSessionRuntime, options: InteractiveModeOptions = {}) {
     super(runtimeHost, options);
+    installResumeCommandRebrand();
+    installTerminalTitleRebrand(this);
   }
 
   override async init(): Promise<void> {

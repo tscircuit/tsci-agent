@@ -23,6 +23,7 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test --max-concurrency 1",
     "format:check": "prettier --check src tests scripts",
+    "format": "prettier --write src tests scripts",
     "smoke": "./dist/cli.js --smoke-test-assets",
     "start": "bun run dist/cli.js",
     "prepack": "bun run build"

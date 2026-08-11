@@ -28,7 +28,7 @@ function installResumeCommandRebrand() {
   const originalWrite = process.stdout.write.bind(process.stdout);
   const wrappedWrite: StdoutWrite = (chunk, ...args) => {
     const rebranded = rebrandResumeChunk(chunk);
-    return originalWrite(rebranded as string, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
+    return originalWrite(rebranded, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
   };
   process.stdout.write = wrappedWrite;
 }

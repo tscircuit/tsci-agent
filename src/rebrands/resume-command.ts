@@ -9,16 +9,10 @@ export function rebrandResumeChunk(chunk: string | Uint8Array): string | Uint8Ar
   return text.includes("To resume this session") ? replaceResumeCommandPi(text) : chunk;
 }
 
-interface StdoutWrite {
-  (chunk: string | Uint8Array, cb?: (error?: Error | null) => void): boolean;
-  (chunk: string | Uint8Array, encoding?: BufferEncoding, cb?: (error?: Error | null) => void): boolean;
-}
-
 export function installResumeCommandRebrand(): void {
   const originalWrite = process.stdout.write.bind(process.stdout);
-  const wrappedWrite: StdoutWrite = (chunk, ...rest) => {
+  process.stdout.write = (chunk: string | Uint8Array, ...rest: unknown[]) => {
     const rebranded = rebrandResumeChunk(chunk);
-    return originalWrite(rebranded, ...(rest as [BufferEncoding?, ((error?: Error | null) => void)?]));
+    return originalWrite(rebranded as string, ...(rest as [BufferEncoding?, ((error?: Error | null) => void)?]));
   };
-  process.stdout.write = wrappedWrite;
 }

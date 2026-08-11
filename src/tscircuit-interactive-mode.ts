@@ -11,27 +11,26 @@ const EXPANDED_HELP = [
   "Ctrl-O to expand tools and startup help",
 ].join("\n");
 const ONBOARDING = "Ask tsci agent to create, inspect, debug, or refactor tscircuit boards and packages.";
+const UTF8_DECODER = new TextDecoder();
 
 export function replaceResumeCommandPi(text: string): string {
   return text.replace(/pi (?=--session)/, "tsci-agent ");
 }
 
-const UTF8_DECODER = new TextDecoder();
-
-export function maybeRebrandResumeChunk(chunk: string | Uint8Array): string | Uint8Array {
-  const text = typeof chunk === "string" ? chunk : UTF8_DECODER.decode(chunk);
+export function rebrandResumeChunk(chunk: string | Uint8Array): string | Uint8Array {
+  const text = chunk instanceof Uint8Array ? UTF8_DECODER.decode(chunk) : chunk;
   return text.includes("To resume this session") ? replaceResumeCommandPi(text) : chunk;
 }
 
-function installResumeCommandRebrand(): void {
+type StdoutWrite = (chunk: string | Uint8Array, ...args: unknown[]) => boolean;
+
+function installResumeCommandRebrand() {
   const originalWrite = process.stdout.write.bind(process.stdout);
-  const wrappedWrite: typeof process.stdout.write = ((chunk: string | Uint8Array, ...args: unknown[]) => {
-    const rebranded = maybeRebrandResumeChunk(chunk);
-    if (rebranded !== chunk) process.stdout.write = originalWrite;
-    chunk = rebranded;
-    return originalWrite(chunk, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
-  }) as typeof process.stdout.write;
-  process.stdout.write = wrappedWrite;
+  const wrappedWrite: StdoutWrite = (chunk, ...args) => {
+    const rebranded = rebrandResumeChunk(chunk);
+    return originalWrite(rebranded as string, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
+  };
+  process.stdout.write = wrappedWrite as unknown as StdoutWrite & typeof process.stdout.write;
 }
 
 function getCompactWelcome(): string {

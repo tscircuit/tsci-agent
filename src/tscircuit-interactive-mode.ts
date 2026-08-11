@@ -1,5 +1,6 @@
 import { InteractiveMode, type InteractiveModeOptions } from "@earendil-works/pi-coding-agent";
 import type { AgentSessionRuntime } from "@earendil-works/pi-coding-agent";
+import { installResumeCommandRebrand, installTerminalTitleRebrand } from "./rebrands";
 
 const COMPACT_HELP = "Ctrl-C interrupt | Ctrl-L/Ctrl-D clear/exit | / commands | ! bash | Ctrl-O more";
 const EXPANDED_HELP = [
@@ -11,24 +12,6 @@ const EXPANDED_HELP = [
   "Ctrl-O to expand tools and startup help",
 ].join("\n");
 const ONBOARDING = "Ask tsci agent to create, inspect, debug, or refactor tscircuit boards and packages.";
-const UTF8_DECODER = new TextDecoder();
-
-export function replaceResumeCommandPi(text: string): string {
-  return text.replace(/pi (?=--session)/, "tsci-agent ");
-}
-
-export function rebrandResumeChunk(chunk: string | Uint8Array): string | Uint8Array {
-  const text = chunk instanceof Uint8Array ? UTF8_DECODER.decode(chunk) : chunk;
-  return text.includes("To resume this session") ? replaceResumeCommandPi(text) : chunk;
-}
-
-function installResumeCommandRebrand(): void {
-  const originalWrite = process.stdout.write.bind(process.stdout);
-  process.stdout.write = (chunk: Parameters<typeof process.stdout.write>[0], ...args: unknown[]): boolean => {
-    const rebranded = rebrandResumeChunk(chunk);
-    return originalWrite(rebranded as string, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
-  };
-}
 
 function getCompactWelcome(): string {
   return `tscircuit agent\n${COMPACT_HELP}\nPress Ctrl-O to show full startup help and loaded resources.\n\n${ONBOARDING}`;
@@ -42,6 +25,7 @@ export class TscircuitInteractiveMode extends InteractiveMode {
   constructor(runtimeHost: AgentSessionRuntime, options: InteractiveModeOptions = {}) {
     super(runtimeHost, options);
     installResumeCommandRebrand();
+    installTerminalTitleRebrand(this);
   }
 
   override async init(): Promise<void> {

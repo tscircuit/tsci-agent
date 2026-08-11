@@ -30,7 +30,7 @@ function installResumeCommandRebrand() {
     const rebranded = rebrandResumeChunk(chunk);
     return originalWrite(rebranded as string, ...(args as [BufferEncoding?, ((error?: Error | null) => void)?]));
   };
-  process.stdout.write = wrappedWrite as unknown as StdoutWrite & typeof process.stdout.write;
+  process.stdout.write = wrappedWrite;
 }
 
 function getCompactWelcome(): string {

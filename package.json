@@ -1,6 +1,10 @@
 {
   "name": "tsci-agent",
   "version": "0.1.12",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tscircuit/tsci-agent"
+  },
   "description": "An interactive coding agent and command line utility for coding tscircuit TSX circuits",
   "type": "module",
   "bin": {

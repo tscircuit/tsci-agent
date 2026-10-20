@@ -56,6 +56,12 @@ async function main() {
     return;
   }
 
+  if (args[0] === "acp") {
+    const { runAcpMode } = await import("./acp-mode");
+    await runAcpMode(args.slice(1));
+    return;
+  }
+
   const { runInteractive } = await import("./interactive");
   await runInteractive(args);
 }

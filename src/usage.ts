@@ -3,10 +3,12 @@ export function usage(): string {
   tsci-agent [options] [initial prompt...]
   tsci-agent do --prompt <prompt> [--dir <dir>] [--sandbox] [pi sdk options...]
   tsci-agent auth <login|logout|status> --openai
+  tsci-agent acp
 
 Commands:
   do    Run Pi through the SDK non-interactively with a human-readable event stream.
   auth  Manage provider authentication. Initially supports --openai.
+  acp   Run the agent as an Agent Client Protocol (ACP) server over stdio.
 
 Options:
   --help, -h               Show this help and exit.

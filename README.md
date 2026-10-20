@@ -59,6 +59,14 @@ tsci-agent do --prompt "Try this refactor" --dir ./somedir --sandbox
 
 `--sandbox` protects the original directory from ordinary writes by using a copy, but it is not a security boundary or container.
 
+## Agent Client Protocol (ACP) mode
+
+Run the agent as an [Agent Client Protocol](https://agentclientprotocol.com) server over stdio so ACP clients can drive it as a single CLI without a separate adapter:
+
+```bash
+tsci-agent acp
+```
+
 ## Library usage
 
 You can also run the agent from another Bun/TypeScript program and inspect the sandbox after the prompt completes:
